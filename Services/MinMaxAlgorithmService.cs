@@ -1,6 +1,6 @@
-namespace jogodavelha.AI
+namespace jogodavelha.Services
 {
-    public class MinMaxAlgorithm
+    public class MinMaxAlgorithmService
     {
         public class Turn
         {

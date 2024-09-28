@@ -1,10 +1,24 @@
 ﻿@page "/"
-@using static jogodavelha.AI.MinMaxAlgorithm
-@* @using Microsoft.AspNetCore.SignalR.Client *@
+@inherits LayoutComponentBase
+@using static jogodavelha.Services.MinMaxAlgorithmService
+@inject RealtimeService service
 @inject IJSRuntime JS
 
-<PageTitle>Home</PageTitle>
+<div class="score">
+    <div class="player"><span class="square x"></span><span class="count">Wins: @(service.Wins_X)</span></div>
+    <div class="player"><span class="square d"></span><span class="count">Draws: @(service.Draws)</span></div>
+    <div class="player"><span class="square o"></span><span class="count">Wins: @(service.Wins_O)</span></div>
+</div>
 
+<div style="display: @(service.ShowWinner ? "contents" : "none")">
+    <div class="swal2-container swal2-center swal2-backdrop-show" style="background: rgba(0, 0, 123, 0.4); overflow-y: auto;" @onclick="()=> HideWinner()">
+        <div aria-labelledby="swal2-title" aria-describedby="swal2-html-container" class="swal2-popup swal2-modal swal2-show" tabindex="-1" role="dialog" aria-live="assertive" aria-modal="true" style="width: fit-content; padding: 1em; color: rgb(113, 106, 221); display: grid; grid-row: 1">
+            <button type="button" class="swal2-close" aria-label="Close this dialog" style="display: none;">×</button>
+            <h2 class="swal2-title" id="swal2-title" style="display: block; padding-bottom: 1em;">@service.Winner</h2>
+            <button type="button" class="swal2-confirm swal2-styled" aria-label="" style="display: inline-block; margin: 0 30%;">OK</button>
+        </div>
+    </div>
+</div>
 <div class="container">
     <div class="board-meta">
         <div class="board">
@@ -14,93 +28,42 @@
                 for (int j = 0; j < 3; j++)
                 {
                     int col = j;
-                    <div class="square @(@Board[row, col])" @onclick="()=> SquareCliked(row, col)" />
+                    <div class="square @(@service.Board[row, col])" @onclick="()=> SquareCliked(row, col)" />
                 }
             }
         </div>
     </div>
+
+    <div style="display: none">
+        <div class="rotate" style="transform: rotateX(@(service.a + "deg")) rotateY(@(service.b + "deg"));">
+        </div>
+        <input type="range" @bind="service.a" @bind:event="oninput"/>
+        <input type="range" @bind="service.b" @bind:event="oninput"/>
+    </div>
 </div>
+@code{
 
-@code {
-    char[,] Board = { { ' ', ' ', ' ' }, { ' ', ' ', ' ' }, { ' ', ' ', ' ' } };
-    char Player = 'o';
-    List<List<int[]>> WinningCombos = new()
+    protected override async Task OnInitializedAsync()
     {
-        //First row
-        new List<int[]>() {new int[] { 0,0 }, new int[] { 0, 1 }, new int[] { 0, 2} },
-        //Second row
-        new List<int[]>() {new int[] { 1,0 }, new int[] { 1, 1 }, new int[] { 1, 2} },
-        //Third row
-        new List<int[]>() {new int[] { 2,0 }, new int[] { 2, 1 }, new int[] { 2, 2} },
+        service.UpdateEvent += AtualizarUI;
+        service.UpdateBoard += AtualizarUI;
+    }
 
-        //First column
-        new List<int[]>() {new int[] { 0,0 }, new int[] { 1, 0 }, new int[] { 2, 0} },
-        //Second column
-        new List<int[]>() {new int[] { 0,1 }, new int[] { 1, 1 }, new int[] { 2, 1} },
-        //Third column
-        new List<int[]>() {new int[] { 0,2 }, new int[] { 1, 2 }, new int[] { 2, 2} },
-
-        //Backward diagonal
-        new List<int[]>() {new int[] { 0,0 }, new int[] { 1, 1 }, new int[] { 2, 2} },
-        //Forward diagonal
-        new List<int[]>() {new int[] { 0,2 }, new int[] { 1, 1 }, new int[] { 2, 0} },
-    };
-
+    private async Task AtualizarUI()
+    {
+        await InvokeAsync(() => this.StateHasChanged());
+    }
+    
     private async Task SquareCliked(int row, int col)
     {
-        if (Board[row, col] != ' ') return;
-        Board[row, col] = Player;
-
-        Turn currentTurn = MinMaxAlgorithm.GetNextBestMove(Board);
-        if(!(currentTurn.row == -1 && currentTurn.col == -1))
-        Board[currentTurn.row, currentTurn.col] = 'x';
-
-        foreach (var combo in WinningCombos)
-        {
-            int[] first = combo[0];
-            int[] second = combo[1];
-            int[] third = combo[2];
-            if (Board[first[0], first[1]] == ' ' || Board[second[0], second[1]] == ' ' || Board[third[0], third[1]] == ' ') continue;
-            if (Board[first[0], first[1]] == Board[second[0], second[1]] && Board[second[0], second[1]] == Board[third[0], third[1]] && Board[first[0], first[1]] == Board[third[0], third[1]])
-            {
-                string winner = Player == 'o' ? "AI" : "Player ONE";
-                await JS.InvokeVoidAsync("ShowSwal", winner);
-                await Task.Delay(1000);
-                ResetGame();
-            }
-        }
-
-        if (IsGameReset())
-        {
-            await JS.InvokeVoidAsync("ShowTie");
-            ResetGame();
-        }
+        if (service.Board[row, col] != ' ') return;
+        service.Board[row, col] = service.NextPlayer;
+        
+        await service.BoardAction();
     }
 
-    private bool IsGameReset()
+    private async Task HideWinner()
     {
-        bool isReset = true;
-        for (int i = 0; i < 3; i++)
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                if(Board[i, j] == ' ')
-                {
-                    isReset = false;
-                }
-            }
-        }
-        return isReset;
-    }
-
-    private void ResetGame()
-    {
-        for (int i = 0; i < 3; i++)
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                Board[i, j] = ' ';
-            }
-        }
+        await service.ResetGame();
     }
 }
