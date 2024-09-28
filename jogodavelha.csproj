@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.2" PrivateAssets="all" />
+  </ItemGroup>
+  
+  <Target Name="CopyToDocs" AfterTargets="Publish" Condition="'$(Configuration)' == 'Release'">
+    <ItemGroup>
+      <OutputFiles Include="$(ProjectDir)$(OutDir)publish\wwwroot\*.*" />
+      <OutputFrame Include="$(ProjectDir)$(OutDir)publish\wwwroot\_framework\*.*" />
+      <OutputJs Include="$(ProjectDir)$(OutDir)publish\wwwroot\js\*.*" />
+      <OutputCss Include="$(ProjectDir)$(OutDir)publish\wwwroot\css\*.*" />
+      <OutputBootstrap Include="$(ProjectDir)$(OutDir)publish\wwwroot\css\bootstrap\*.*" />
+      <OutputJekyll Include="$(ProjectDir).nojekyll" />
+    </ItemGroup>
+    <Message Importance="high" Text="Copying output to docs, to serve github pages" />  
+    <Copy SourceFiles="@(OutputFiles)" DestinationFolder="$(ProjectDir)docs\" />
+    <Copy SourceFiles="@(OutputFrame)" DestinationFolder="$(ProjectDir)docs\_framework\" />
+    <Copy SourceFiles="@(OutputJs)" DestinationFolder="$(ProjectDir)docs\js\" />
+    <Copy SourceFiles="@(OutputCss)" DestinationFolder="$(ProjectDir)docs\css\" />
+    <Copy SourceFiles="@(OutputBootstrap)" DestinationFolder="$(ProjectDir)docs\css\bootstrap\" />
+    <Copy SourceFiles="@(OutputJekyll)" DestinationFolder="$(ProjectDir)docs\" />
+  </Target>
+
+</Project>
