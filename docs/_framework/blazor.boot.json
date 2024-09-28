@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "jogodavelha",
   "resources": {
-    "hash": "sha256-IuSt3+KiE8fezMyNZSqO4TgtNsKehAWU7b2L8Q8aLpI=",
+    "hash": "sha256-3T0PgUXlfopaPc1uxE8IKBB2qy8eMg3/PrrtolzFiYY=",
     "jsModuleNative": {
       "dotnet.native.8.0.2.ehfkinuhs4.js": "sha256-gPMK16QWoJSTxorlZJqcVtbBRTniIQWlLsJN2O4cJHg="
     },
@@ -17,7 +17,7 @@
       "icudt_no_CJK.dat": "sha256-L7sV7NEYP37/Qr2FPCePo5cJqRgTXRwGHuwF5Q+0Nfs="
     },
     "assembly": {
-      "jogodavelha.wasm": "sha256-peiYj3q3V3DGBSfwaQvCXofquWmDsYsAOKWuNLHN2wE=",
+      "jogodavelha.wasm": "sha256-RktQpKCkh8FJgSZc7AdqTIh6SMVB4CadTMYgIH2dDzg=",
       "Microsoft.AspNetCore.Components.wasm": "sha256-+XNH/sd59fKp2fdJIbEguhQ4TCxVcW2xkLECXNrod8I=",
       "Microsoft.AspNetCore.Components.Web.wasm": "sha256-0KisFlCQGsFQexOgjsJ2pZiu6mZAgVpvKoIM5ngHeD4=",
       "Microsoft.AspNetCore.Components.WebAssembly.wasm": "sha256-jrdFRjrF1131MZ3HGQVsI3dX8cLdZvPz85lsBltxjSM=",
