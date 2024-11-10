@@ -1,0 +1,114 @@
+﻿@inherits LayoutComponentBase
+@using static jogodavelha.MinMaxAlgorithmService
+@inject RealtimeService service
+@inject IJSRuntime JS
+
+<style>
+    body{
+        margin: 0;
+    }
+    .container{
+        display: grid;
+        align-items: center;
+        justify-items: center;
+        height: calc(100vh - 75px);
+        width: 100vw;
+        overflow: hidden;
+    }
+    .rotate{
+        height: 300px;
+        width: 300px;
+        background-color: lightcoral;
+    }
+
+    .score {
+        font-size: 2em; 
+        font-family: monospace; 
+        display: grid; 
+        grid-template-columns: auto auto auto;
+        height: 75px;
+        width: 100vw;
+    }
+
+    .score .player {
+        text-align: center;
+        background-color: white;
+        color: #2b2d42;
+        border-right: solid;
+    }
+
+    .score .square {
+        float: left;
+        height: 75px;
+        width: 75px;
+    }
+
+    .score .count {
+        display: block;
+        padding-top: 20px;
+    }
+</style>
+
+<div class="score">
+    <div class="player"><span class="square x"></span><span class="count">Wins: @(service.Wins_X)</span></div>
+    <div class="player"><span class="square d"></span><span class="count">Draws: @(service.Draws)</span></div>
+    <div class="player"><span class="square o"></span><span class="count">Wins: @(service.Wins_O)</span></div>
+</div>
+
+<div style="display: @(service.ShowWinner ? "contents" : "none")">
+    <div class="swal2-container swal2-center swal2-backdrop-show" style="background: rgba(0, 0, 123, 0.4); overflow-y: auto;" @onclick="()=> HideWinner()">
+        <div aria-labelledby="swal2-title" aria-describedby="swal2-html-container" class="swal2-popup swal2-modal swal2-show" tabindex="-1" role="dialog" aria-live="assertive" aria-modal="true" style="width: fit-content; padding: 1em; color: rgb(113, 106, 221); display: grid; grid-row: 1">
+            <button type="button" class="swal2-close" aria-label="Close this dialog" style="display: none;">×</button>
+            <h2 class="swal2-title" id="swal2-title" style="display: block; padding-bottom: 1em;">@service.Winner</h2>
+            <button type="button" class="swal2-confirm swal2-styled" aria-label="" style="display: inline-block; margin: 0 30%;">OK</button>
+        </div>
+    </div>
+</div>
+<div class="container">
+    <div class="board-meta">
+        <div class="board">
+            @for(int i=0; i < 3; i++)
+            {
+                int row = i;
+                for (int j = 0; j < 3; j++)
+                {
+                    int col = j;
+                    <div class="square @(@service.Board[row, col])" @onclick="()=> SquareCliked(row, col)" />
+                }
+            }
+        </div>
+    </div>
+
+    <div style="display: none">
+        <div class="rotate" style="transform: rotateX(@(service.a + "deg")) rotateY(@(service.b + "deg"));">
+        </div>
+        <input type="range" @bind="service.a" @bind:event="oninput"/>
+        <input type="range" @bind="service.b" @bind:event="oninput"/>
+    </div>
+</div>
+@code{
+
+    protected override async Task OnInitializedAsync()
+    {
+        service.UpdateEvent += AtualizarUI;
+        service.UpdateBoard += AtualizarUI;
+    }
+
+    private async Task AtualizarUI()
+    {
+        await InvokeAsync(() => this.StateHasChanged());
+    }
+    
+    private async Task SquareCliked(int row, int col)
+    {
+        if (service.Board[row, col] != ' ') return;
+        service.Board[row, col] = service.NextPlayer;
+        
+        await service.BoardAction();
+    }
+
+    private async Task HideWinner()
+    {
+        await service.ResetGame();
+    }
+}
