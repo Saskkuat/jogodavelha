@@ -1,0 +1,31 @@
+name: build and deploy
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  deploy-to-github-pages:
+    # use ubunto-latest image to run steps on
+    runs-on: ubuntu-latest
+    steps: 
+      # checkout main branch
+      - uses: actions/checkout@v4
+      # install .net core sdk
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      # install dotnet wasm buildtools worload
+      - name: Install .NET WASM build tools
+        run: dotnet workload install wasm-tools
+      # publish blazor project to the release-folder
+      - name: Publish to release folder
+        run: dotnet publish ./jogodavelha.csproj -c:Release -p:GHPages=true -o dist/web --nologo
+      - name: Commit wwwroot to github pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          BRANCH: gh-pages
+          FOLDER: dist/web/wwwroot
